@@ -47,9 +47,8 @@ def pause(prompt: str = "\n按回车键继续...") -> None:
         print()
 
 
-def save_tasks() -> None:
+def save_tasks(task_system) -> None:
     """退出前保存任务数据（任何异常都不阻断退出流程）"""
-    task_system = MenuFactory.get_task_system()
     if task_system is None:
         return
     try:
@@ -63,8 +62,9 @@ def save_tasks() -> None:
 
 def main() -> None:
     # 使用工厂创建菜单系统（创建失败不进入主循环，直接给出提示并退出）
+    task_system = None
     try:
-        menu_sys = MenuFactory.create_menu_system()
+        menu_sys, task_system = MenuFactory.create_menu_system()
     except Exception as e:
         print(f"[错误] 初始化菜单系统失败: {e}")
         return
@@ -140,7 +140,7 @@ def main() -> None:
                 continue
     finally:
         # 无论正常退出、EOF 退出还是循环外抛异常，退出前都保存一次
-        save_tasks()
+        save_tasks(task_system)
 
 if __name__ == "__main__":
     main()
