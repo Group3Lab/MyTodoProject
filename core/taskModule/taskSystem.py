@@ -55,10 +55,10 @@ class TaskSystem:
     # -----------分割线------------
     # 修改属性的代码写在后面，注意属性和修改的方法一一对应
 
-    #def update_completed(self, idx: int, status: bool) -> bool:
-    #    """更新任务的完成状态"""
-    #    task = self._get_by_index(idx)
-    #    if task:
-    #        task.is_completed = status
-    #        return True
-    #    return False
+    def update_completed(self, idx: int, status: bool) -> bool:
+       """更新任务的完成状态"""
+       task = self._get_by_index(idx)
+       if task:
+            task.is_completed = status
+            return True
+       return False
