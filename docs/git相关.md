@@ -91,6 +91,8 @@ git pull origin main     # 保证自己是从最新的 main 开分支
 
 ### 第 3 步：开自己的分支
 
+dts部分是你的称呼
+
 ```bash
 git switch -c dts/简要说明
 ```
