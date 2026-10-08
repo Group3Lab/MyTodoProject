@@ -47,6 +47,7 @@ git commit -m "docs(git): 补全git使用文档"   # 提交
 ## 4. 撤销与回退（改错了用）（用ide的工具就好）
 
 ```bash
+git reset --soft HEAD~1         # 撤销最近一次 commit，改动保留在暂存区，一般用这个就够了
 git restore 文件名              # 丢弃工作区里还没暂存的改动（危险，改了就回不来）
 git restore --staged 文件名     # 只把它从暂存区拿出来，改动内容保留
 git log --oneline               # 找到要回退到的提交号
