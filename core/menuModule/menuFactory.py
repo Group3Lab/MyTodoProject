@@ -3,6 +3,8 @@
 负责创建和注册所有菜单，解耦 main 与具体菜单实现
 '''
 
+from core.taskModule.taskSL import taskLoad
+
 from .menuSystem import MenuSystem
 from core.taskModule.taskSystem import TaskSystem
 
@@ -23,8 +25,15 @@ class MenuFactory:
         """
         menu_sys = MenuSystem()
 
-        # 创建共享的 TaskSystem 实例
-        task_system = TaskSystem()
+        # 加载任务列表（taskLoad 失败时返回 None）
+        tasks = taskLoad()
+        if tasks is None:
+            # 加载失败不能把 None 注入给菜单，否则调用时才报错、且根因被 try 掩盖
+            print("[错误] 任务数据加载失败，本次以空清单启动")
+            tasks = []
+
+        # 用任务列表构造 TaskSystem 实例
+        task_system = TaskSystem.CreateFromList(tasks)
 
         # 注册所有菜单，注入依赖
         MenuFactory._register_menus(menu_sys, task_system)
