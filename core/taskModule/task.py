@@ -5,6 +5,7 @@
 
 class Task:
 
+    # 有新属性要初始化默认值做好封装
     def __init__(self, title, is_completed: bool=False):
         if not title or not title.strip():
             raise ValueError("任务标题不能为空")
