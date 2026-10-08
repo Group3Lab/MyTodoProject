@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+from core.taskModule.taskSL import taskSave
+
 from .task import Task
 
 
@@ -8,6 +10,14 @@ class TaskSystem:
 
     def __init__(self):
         self.__tasks = []
+
+    # 备用构造函数：用已有的任务列表创建一个 TaskSystem
+    @classmethod
+    def CreateFromList(cls, tasks: list[Task]) -> "TaskSystem":
+        obj = cls()
+        if tasks:
+            obj.__tasks = list(tasks)
+        return obj
 
     def add(self, title: str) -> Task:
         task = Task(title)
@@ -37,6 +47,10 @@ class TaskSystem:
     def get_task_count(self) -> int:
         """获取任务总数"""
         return len(self.__tasks)
+
+    # 保存数据
+    def Save(self) -> bool:
+        return taskSave(self.__tasks)
 
     # -----------分割线------------
     # 修改属性的代码写在后面，注意属性和修改的方法一一对应
