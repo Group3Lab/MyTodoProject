@@ -6,8 +6,8 @@
 from .menuSystem import MenuSystem
 from core.taskModule.taskSystem import TaskSystem
 
-from Menus.MenuA import MenuA
-from Menus.ViewTasksMenu import ViewTasksMenu
+from menus.MenuA import MenuA
+from menus.ViewTasksMenu import ViewTasksMenu
 
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
