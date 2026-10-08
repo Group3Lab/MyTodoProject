@@ -9,3 +9,5 @@ feat(AddTaskMenu): 新增添加任务菜单
 让ai根据我的需求写了关于task类修改规范的文档
 
 让ai加强了main循环的保护
+
+learn下都是ai生成+手调
