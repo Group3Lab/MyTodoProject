@@ -8,6 +8,8 @@ from core.taskModule.taskSystem import TaskSystem
 
 from menus.MenuA import MenuA
 from menus.ViewTasksMenu import ViewTasksMenu
+from menus.AddTaskMenu import AddTaskMenu
+from menus.DeleteTaskMenu import DeleteTaskMenu
 
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
@@ -39,3 +41,5 @@ class MenuFactory:
         # 功能菜单
         menu_sys.register(MenuA())
         menu_sys.register(ViewTasksMenu(task_system))
+        menu_sys.register(AddTaskMenu(task_system))
+        menu_sys.register(DeleteTaskMenu(task_system))
