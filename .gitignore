@@ -1,0 +1,159 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 测试 / 覆盖率
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# PEP 582
+__pypackages__/
+
+# mypy / ruff 等缓存
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+.pyre/
+
+# 打包 / 分发
+*.manifest
+*.spec
+
+# 依赖
+node_modules/
+vendor/
+
+# 构建产物
+dist/
+build/
+out/
+*.exe
+
+# 日志与缓存
+*.log
+.cache/
+
+# 环境变量
+.env
+.env.local
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 大文件：图片
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.webp
+*.ico
+*.svg
+*.psd
+*.ai
+*.raw
+*.heic
+*.avif
+
+# 大文件：压缩包
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tbz2
+*.tar.xz
+*.txz
+*.gz
+*.bz2
+*.xz
+*.zst
+*.lz4
+*.cab
+*.iso
+
+# 大文件：PDF / 文档 / 电子书
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.epub
+*.mobi
+
+# 大文件：音视频
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.m4a
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.flv
+*.webm
+
+# 大文件：其他二进制
+*.bin
+*.dat
+*.dmg
+*.pkg
+*.msi
+*.apk
+*.ipa
+
+# 大文件：下载 / 导出目录
+downloads/
+exports/
+temp/
+tmp/
