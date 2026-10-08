@@ -47,6 +47,20 @@ def pause(prompt: str = "\n按回车键继续...") -> None:
         print()
 
 
+def save_tasks() -> None:
+    """退出前保存任务数据（任何异常都不阻断退出流程）"""
+    task_system = MenuFactory.get_task_system()
+    if task_system is None:
+        return
+    try:
+        if task_system.Save():
+            print("任务数据已保存。")
+        else:
+            print("[错误] 任务数据保存失败！")
+    except Exception as e:
+        print(f"[错误] 任务数据保存异常: {e}")
+
+
 def main() -> None:
     # 使用工厂创建菜单系统（创建失败不进入主循环，直接给出提示并退出）
     try:
@@ -56,73 +70,77 @@ def main() -> None:
         return
 
     # 主循环：任何单次操作的异常都不会让程序崩溃
-    while True:
-        try:
-            clear_screen()  # 每次循环开始时清屏
-
-            print("\n" + "="*50)
-            print("MyTodo - 待办任务管理系统")
-            print("="*50)
-
-            # 显示菜单
-            menu_sys.printMenu()
-            print("0: 退出")
-
-            # 获取用户输入
-            userInput = safe_input("\n请选择功能: ")  # 删掉字符串开头和结尾的空白字符
-
-            # 输入流已结束：无法再获取输入，直接安全退出，避免空转
-            if userInput is None:
-                print("\n输入已结束，程序退出。")
-                return
-
-            choice: int = toNum(userInput)  # 输入转Int
-
-            clear_screen()  # 选择后清屏
-
-            print("\n" + "="*50)
-
-            if choice == -1:
-                print("非法输入，请重新选择")
-                pause()
-                continue
-
-            if choice < 0 or choice > menu_sys.countId:
-                print("输入超出范围，请重新选择")
-                pause()
-                continue
-
-            # 处理退出
-            if choice == 0:
-                print("感谢使用，再见！")
-                break
-
-            # 执行菜单并处理返回的错误码（0 表示成功，非 0 表示失败）
+    try:
+        while True:
             try:
-                result: int = menu_sys.execute(choice)
+                clear_screen()  # 每次循环开始时清屏
+
+                print("\n" + "="*50)
+                print("MyTodo - 待办任务管理系统")
+                print("="*50)
+
+                # 显示菜单
+                menu_sys.printMenu()
+                print("0: 退出")
+
+                # 获取用户输入
+                userInput = safe_input("\n请选择功能: ")  # 删掉字符串开头和结尾的空白字符
+
+                # 输入流已结束：无法再获取输入，直接安全退出，避免空转
+                if userInput is None:
+                    print("\n输入已结束，程序退出。")
+                    return
+
+                choice: int = toNum(userInput)  # 输入转Int
+
+                clear_screen()  # 选择后清屏
+
+                print("\n" + "="*50)
+
+                if choice == -1:
+                    print("非法输入，请重新选择")
+                    pause()
+                    continue
+
+                if choice < 0 or choice > menu_sys.countId:
+                    print("输入超出范围，请重新选择")
+                    pause()
+                    continue
+
+                # 处理退出
+                if choice == 0:
+                    print("感谢使用，再见！")
+                    break
+
+                # 执行菜单并处理返回的错误码（0 表示成功，非 0 表示失败）
+                try:
+                    result: int = menu_sys.execute(choice)
+                except Exception as e:
+                    print(f"[错误] 功能执行异常: {e}")
+                    result = -1
+
+                if result is not None and result != 0:
+                    print(f"功能执行失败，错误码：{result}")
+                    print("请返回主菜单后重试")
+
+                # 等待继续
+                pause()
+
+                print("\n" + "="*50)
+
+            except KeyboardInterrupt:
+                # 兜底：Ctrl+C 不会让程序抛出堆栈，回到主菜单继续
+                print("\n已取消当前操作，返回主菜单")
+                pause()
+                continue
             except Exception as e:
-                print(f"[错误] 功能执行异常: {e}")
-                result = -1
-
-            if result is not None and result != 0:
-                print(f"功能执行失败，错误码：{result}")
-                print("请返回主菜单后重试")
-
-            # 等待继续
-            pause()
-
-            print("\n" + "="*50)
-
-        except KeyboardInterrupt:
-            # 兜底：Ctrl+C 不会让程序抛出堆栈，回到主菜单继续
-            print("\n已取消当前操作，返回主菜单")
-            pause()
-            continue
-        except Exception as e:
-            # 兜底：循环体任何未预料的异常都不终止主循环
-            print(f"\n[错误] 出现未预期的异常: {e}")
-            pause()
-            continue
+                # 兜底：循环体任何未预料的异常都不终止主循环
+                print(f"\n[错误] 出现未预期的异常: {e}")
+                pause()
+                continue
+    finally:
+        # 无论正常退出、EOF 退出还是循环外抛异常，退出前都保存一次
+        save_tasks()
 
 if __name__ == "__main__":
     main()
