@@ -5,12 +5,13 @@
 
 class Task:
 
-    def __init__(self, title, is_completed: bool=False):
+    # 有新属性要初始化默认值做好封装
+    # 不要动参数列表，有新参数先创建在修改
+    def __init__(self, title):
         if not title or not title.strip():
             raise ValueError("任务标题不能为空")
 
         self.__title = title.strip()
-        #self.__is_completed = is_completed
 
     @property
     def title(self) -> str:
