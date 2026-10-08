@@ -13,25 +13,18 @@ from menus.ViewTasksMenu import ViewTasksMenu
 from menus.AddTaskMenu import AddTaskMenu
 from menus.DeleteTaskMenu import DeleteTaskMenu
 from menus.MarkDoneMenu import MarkDoneMenu
+
+
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
 
-    # 最近一次创建的任务系统实例，供需要保存数据的调用方使用（如 main 退出前保存）
-    _task_system: TaskSystem = None
-
-    # 暴露出来给main用的，为了实现保存，其他类别乱动
+    # 返回tuple[MenuSystem, TaskSystem]，主要产物和副产物属于是，因为main需要访问TaskSystem的Save
     @staticmethod
-    def get_task_system() -> TaskSystem:
-        """获取最近一次创建的任务系统实例（未创建时返回 None）"""
-        return MenuFactory._task_system
-
-    # 不要多次调用此方法，此方法只在main调用一次
-    @staticmethod
-    def create_menu_system() -> MenuSystem:
+    def create_menu_system() -> tuple[MenuSystem, TaskSystem]:
         """
         创建并配置完整的菜单系统
         使用依赖注入将 TaskSystem 实例传递给各个菜单
-        :return: 配置好的 MenuSystem 实例
+        :return: (配置好的 MenuSystem 实例, 本次创建的 TaskSystem 实例)，供 main 保存数据使用
         """
         menu_sys = MenuSystem()
 
@@ -45,13 +38,11 @@ class MenuFactory:
         # 用任务列表构造 TaskSystem 实例
         task_system = TaskSystem.CreateFromList(tasks)
 
-        # 记录实例，供 main 退出前保存数据
-        MenuFactory._task_system = task_system
-
         # 注册所有菜单，注入依赖
         MenuFactory._register_menus(menu_sys, task_system)
 
-        return menu_sys
+        # 连同 task_system 一起返回，供 main 持有并在退出前保存数据
+        return menu_sys, task_system
 
     @staticmethod
     def _register_menus(menu_sys: MenuSystem, task_system: TaskSystem) -> None:
