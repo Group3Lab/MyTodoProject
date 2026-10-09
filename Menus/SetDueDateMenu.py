@@ -1,7 +1,6 @@
 from datetime import datetime
 from core.menuModule.menu import Menu
-from taskSystem import TaskSystem
-
+from core.taskModule.taskSystem import TaskSystem
 class SetDueDateMenu(Menu):
     def __init__(self, task_system: TaskSystem):
         super().__init__(
