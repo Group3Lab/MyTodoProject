@@ -11,6 +11,7 @@ from menus.ViewTasksMenu import ViewTasksMenu
 from menus.AddTaskMenu import AddTaskMenu
 from menus.DeleteTaskMenu import DeleteTaskMenu
 from menus.MarkDoneMenu import MarkDoneMenu
+from menus.MyDeleteTaskMenu import MyDeleteTaskMenu
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
 
@@ -44,3 +45,4 @@ class MenuFactory:
         menu_sys.register(AddTaskMenu(task_system))
         menu_sys.register(DeleteTaskMenu(task_system))
         menu_sys.register(MarkDoneMenu(task_system))
+        menu_sys.register(MyDeleteTaskMenu(task_system))
