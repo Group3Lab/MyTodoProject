@@ -12,20 +12,23 @@ class Task:
             raise ValueError("任务标题不能为空")
 
         self.__title = title.strip()
+        self.__is_completed = False
 
     @property
     def title(self) -> str:
         return self.__title
 
-    #@property
-    #def is_completed(self) -> bool:
-    #    return self.__is_completed
+    @property
+    def is_completed(self) -> bool:
+        return self.__is_completed
 
-    #@is_completed.setter
-    #def is_completed(self, value: bool):
-    #    # 补充防乱写入逻辑
-    #    self.__is_completed = value
+    @is_completed.setter
+    def is_completed(self, value: bool):
+    #   # 补充防乱写入逻辑    
+        if not isinstance(value, bool):
+            raise ValueError("is_completed must be a boolean value")
+        self.__is_completed = value
 
-    #def to_string(self):
-    #    # 提示：老师要求的格式更复杂，包含优先级和日期，自己改！
-    #    return f"{self.title}|{self.is_completed}"
+    def to_string(self):
+    #   # 提示：老师要求的格式更复杂，包含优先级和日期，自己改！
+        return f"{self.title}|{self.is_completed}"
