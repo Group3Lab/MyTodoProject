@@ -38,5 +38,5 @@ class MyDeleteTaskMenu(Menu):
             else:
                 print("任务编号不存在，删除失败。")
         except ValueError:
-            print("请输入数字编号。")
+            print("输入错误，请输入数字。")
             return 0
