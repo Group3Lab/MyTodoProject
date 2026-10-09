@@ -1,6 +1,6 @@
 from core.menuModule.menu import Menu
 from core.taskModule.task import Priority
-from taskSystem import TaskSystem
+from core.taskModule.taskSystem import TaskSystem
 
 class SetPriorityMenu(Menu):
     def __init__(self, task_system: TaskSystem):
