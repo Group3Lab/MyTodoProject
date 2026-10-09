@@ -1,9 +1,9 @@
 from datetime import datetime
 from core.menuModule.menu import Menu
+from taskSystem import TaskSystem
 
 class SetDueDateMenu(Menu):
-    def __init__(self, task_system):
-        self.__task_system = task_system
+    def __init__(self, task_system: TaskSystem):
         super().__init__(
             "设置截止日期",
             "为指定任务设置截止日期",
@@ -25,7 +25,8 @@ class SetDueDateMenu(Menu):
         try:
             input_num = int(input("请输入要设置的任务编号："))
             target_idx = input_num - 1
-            if target_idx < 0:
+            if target_idx < 0 or target_idx >= total_tasks:
+                #规定上界，任务编号上下界校验
                 print("任务编号超出范围！")
                 return 0
 

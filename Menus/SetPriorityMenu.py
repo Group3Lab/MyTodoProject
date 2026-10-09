@@ -1,8 +1,10 @@
 from core.menuModule.menu import Menu
 from core.taskModule.task import Priority
+from taskSystem import TaskSystem
 
 class SetPriorityMenu(Menu):
-    def __init__(self, task_system):
+    def __init__(self, task_system: TaskSystem):
+        #限制函数类型
         super().__init__(
             "设置任务优先级",
             "设置指定任务的优先级",
@@ -21,20 +23,22 @@ class SetPriorityMenu(Menu):
         try:
             input_num = int(input("请输入要设置的任务编号: ").strip())
             target_idx = input_num - 1
-            if target_idx < 0:
+            if target_idx < 0 or target_idx >= total_tasks:
+                #规定上界，任务编号上下界校验
                 print("任务编号超出范围！")
                 return 0
 
-            p_num = int(input("输入优先级数字(1/2/3): ").strip())
-            if p_num == 1:
-                p = Priority.LOW
-            elif p_num == 2:
-                p = Priority.MEDIUM
-            elif p_num == 3:
-                p = Priority.HIGH
-            else:
-                print("只能输入1、2、3")
+            Priority = int(input("输入优先级数字(1/2/3): ").strip())
+            if not (1 <= Priority <= 3):
+                print("优先级数字超出范围！")
                 return 0
+            if Priority == 1:
+                p = Priority.LOW
+            elif Priority == 2:
+                p = Priority.MEDIUM
+            elif Priority == 3:
+                p = Priority.HIGH
+          
 
             result = self.__task_system.update_priority(target_idx, p)
             if result:
