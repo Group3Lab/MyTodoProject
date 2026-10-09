@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from core.taskModule.taskSL import taskSave
 
-from .task import Task
+from .task import Priority, Task
 
 
 class TaskSystem:
@@ -62,3 +62,18 @@ class TaskSystem:
             task.is_completed = status
             return True
        return False
+    def update_due_date(self, idx: int, due_date: str) -> bool:
+        """更新任务的截止日期"""
+        task = self._get_by_index(idx)
+        if task:
+            task.due_date = due_date
+            return True
+        return False
+    
+    def update_priority(self, idx: int, priority: Priority) -> bool:
+        """更新任务的优先级"""
+        task = self._get_by_index(idx)
+        if task:
+            task.priority = priority
+            return True
+        return False
