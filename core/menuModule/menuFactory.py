@@ -55,7 +55,7 @@ class MenuFactory:
         menu_sys.register(MenuA())
         menu_sys.register(ViewTasksMenu(task_system))
         menu_sys.register(AddTaskMenu(task_system))
-        menu_sys.register(DeleteTaskMenu(task_system))
+        #menu_sys.register(DeleteTaskMenu(task_system)) # 大肥鱼写的藏代码，弃用了
         menu_sys.register(MyDeleteTaskMenu(task_system))
         menu_sys.register(MarkDoneMenu(task_system))
 
