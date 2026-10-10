@@ -16,7 +16,7 @@ from menus.MyDeleteTaskMenu import MyDeleteTaskMenu
 from menus.MarkDoneMenu import MarkDoneMenu
 from menus.SetDueDateMenu import SetDueDateMenu
 from menus.SetPriorityMenu import SetPriorityMenu
-
+from menus.ExportReportMenu import ExportReportMenu
 
 
 class MenuFactory:
@@ -64,3 +64,4 @@ class MenuFactory:
         menu_sys.register(MarkDoneMenu(task_system))
         menu_sys.register(SetDueDateMenu(task_system))
         menu_sys.register(SetPriorityMenu(task_system))
+        menu_sys.register(ExportReportMenu(task_system))
