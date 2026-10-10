@@ -36,7 +36,7 @@ class AddTaskMenu(Menu):
                     return 0
 
             task = self.__task_system.add(title)
-            print(f"\n添加成功：{task.title}")
+            print(f"\n添加成功了：{task.title}")
 
             print("\n" + "="*50)
             return 0
