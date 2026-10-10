@@ -80,12 +80,12 @@ class TaskSystem:
         from datetime import datetime  # 保证 import 在函数内部
         result = []  # 必须初始化
         if filter_type == "unfinished":
-            result = [t for t in self._tasks if not t.is_completed]
+            result = [t for t in self.__tasks if not t.is_completed]
         elif filter_type == "finished":
-            result = [t for t in self._tasks if t.is_completed]
+            result = [t for t in self.__tasks if t.is_completed]
         elif filter_type == "overdue":
             now = datetime.now()
-            for t in self._tasks:
+            for t in self.__tasks:
                 if not t.is_completed and t.due_date:
                     try:
                         due = datetime.strptime(t.due_date, "%Y-%m-%d")
@@ -98,7 +98,7 @@ class TaskSystem:
         def search_tasks(self, keyword: str):
             keyword = keyword.lower()
         result = []
-        for t in self._tasks:
+        for t in self.__tasks:
             title = getattr(t, 'title', '')
             if isinstance(title, str) and keyword in title.lower():
                 result.append(t)
@@ -107,9 +107,9 @@ class TaskSystem:
     def sort_tasks(self, sort_by: str):
         """对任务进行排序"""
         if sort_by == "priority":
-            result = sorted(self._tasks, key=lambda x: x.priority)
+            result = sorted(self.__tasks, key=lambda x: x.priority)
         elif sort_by == "due_date":
-            result = sorted(self._tasks, key=lambda x: x.due_date if x.due_date else "9999-99-99")
+            result = sorted(self.__tasks, key=lambda x: x.due_date if x.due_date else "9999-99-99")
         else:
-            result = self._tasks
+            result = self.__tasks
         return [deepcopy(t) for t in result]

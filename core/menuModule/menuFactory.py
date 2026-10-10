@@ -15,7 +15,7 @@ from Menus.MyDeleteTaskMenu import MyDeleteTaskMenu
 from Menus.MarkDoneMenu import MarkDoneMenu
 from Menus.SetDueDateMenu import SetDueDateMenu
 from Menus.SetPriorityMenu import SetPriorityMenu
-
+from Menus.SearchAndFilterMenu import SearchAndFilterMenu
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
 
@@ -61,3 +61,4 @@ class MenuFactory:
         menu_sys.register(MarkDoneMenu(task_system))
         menu_sys.register(SetDueDateMenu(task_system))
         menu_sys.register(SetPriorityMenu(task_system))
+        menu_sys.register(SearchAndFilterMenu(task_system))
