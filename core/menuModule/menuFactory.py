@@ -16,7 +16,7 @@ from menus.MyDeleteTaskMenu import MyDeleteTaskMenu
 from menus.MarkDoneMenu import MarkDoneMenu
 from menus.SetDueDateMenu import SetDueDateMenu
 from menus.SetPriorityMenu import SetPriorityMenu
-from menu.ExportReportMenu import ExportReportMenu
+from menus.ExportReportMenu import ExportReportMenu
 
 
 class MenuFactory:

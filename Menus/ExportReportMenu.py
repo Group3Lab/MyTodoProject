@@ -4,16 +4,17 @@
 """
 
 from core.menuModule.menu import Menu
+from core.taskModule.task import Task
 from core.taskModule.taskSystem import TaskSystem
 
 import html#生成HTML文件，实现导出后双击即可使用
-from datetime import datetime#获取时间
+from datetime import date,datetime#获取时间
 from pathlib import Path#实现导出文件存放位置
 
 DEFAULT_DIR=Path(__file__).resolve().parent.parent/"reports"#将文件存放位置默认在项目根目录下的reports/文件夹之中
 
 class ExportReportMenu(Menu):
-    def __init__(self,task_system: TaskSystem):
+    def __init__(self,task_system: TaskSystem)->None:
         super().__init__(
             "任务清单导出",
             "把当前清单导出成一个文件"
@@ -47,12 +48,12 @@ class ExportReportMenu(Menu):
         try:#尝试用户输入路径是否可用
             user_path=Path(raw)
             user_path.mkdir(parents=True,exist_ok=True)
-            return user_Path
+            return user_path
         except(OSError,PermissionError) as e:
             print(f"[警告]无法使用该目录({e}),使用默认目录")
             return DEFAULT_DIR
 
-    def _collect_tasks(self)->list:#拉取数据
+    def _collect_tasks(self)->list[Task]:#拉取数据
         tasks=[]
         for i in range(self.__task_system.get_task_count()):
             t=self.__task_system.get_by_index(i)
@@ -60,7 +61,7 @@ class ExportReportMenu(Menu):
                 tasks.append(t)
         return tasks
 
-    def _compute_stats(self,tasks:list)->dict:#统计数据
+    def _compute_stats(self,tasks:list[Task])->dict[str,int|float]:#统计数据
         today = datetime.now().date()#获取时间
         total=len(tasks)
         done=sum(1 for t in tasks if t.is_completed)
@@ -76,12 +77,12 @@ class ExportReportMenu(Menu):
         }
 
     @staticmethod#判断是否逾期
-    def _is_overdue(task,today)->bool:
+    def _is_overdue(task:Task,today:date)->bool:
         if task.is_completed or not task.has_due_date:
             return False
         return task.due_date.date() < today
 
-    def _render_html(self, tasks: list, stats: dict, today) -> str:#拼接HTML
+    def _render_html(self, tasks: list[Task], stats: dict[str,int|float], today:date) -> str:#拼接HTML
         today_str = today.strftime("%Y-%m-%d")
         rows_html = self._render_rows(tasks, today)
         bar_width = f"{stats['rate']}%"
@@ -131,7 +132,7 @@ class ExportReportMenu(Menu):
 </body>
 </html>"""
 
-    def _render_rows(self, tasks: list, today) -> str:#拼表格
+    def _render_rows(self, tasks: list[Task], today:date) -> str:#拼表格
         if not tasks:
             return '<tr><td colspan="5" class="empty">暂无任务</td></tr>'
         parts = []
