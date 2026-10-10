@@ -40,6 +40,18 @@ class ViewTasksMenu(Menu):
 
         for i in range(count):
             task = self.__task_system.get_by_index(i)
-            #status = "已完成" if task.is_completed else "未完成"
-            #print(f"{i + 1}. {task.title} [{status}]")
-            print(f"{i + 1}. {task.title}")
+
+            # 状态：把 True/False 转成中文
+            status = "已完成" if task.is_completed else "未完成"
+
+            # 优先级：task.priority 是枚举，.value 拿到中文 "高"/"中"/"低"
+            priority = task.priority.value
+
+            # 截止日期：如果有就格式化成 YYYY-MM-DD，没有就显示"无截止日期"
+            if task.has_due_date:
+                due_date = task.due_date.strftime("%Y-%m-%d")
+            else:
+                due_date = "无截止日期"
+
+            # 打印：编号、优先级、标题、截止日期、状态
+            print(f"{i + 1}. [{priority}] {task.title} | 截止日期: {due_date} | 状态: {status}")
