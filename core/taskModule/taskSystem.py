@@ -11,7 +11,6 @@ class TaskSystem:
     def __init__(self):
         self.__tasks = []
 
-    # 备用构造函数：用已有的任务列表创建一个 TaskSystem
     @classmethod
     def CreateFromList(cls, tasks: list[Task]) -> "TaskSystem":
         obj = cls()
@@ -24,13 +23,11 @@ class TaskSystem:
         self.__tasks.append(task)
         return task
 
-    # 返回本身（引用）,内部使用，修改数据请走专用方法
     def _get_by_index(self, idx: int) -> Task:
         if 0 <= idx <= len(self.__tasks)-1:
             return self.__tasks[idx]
         return None
 
-    # 返回副本，只给查不给改
     def get_by_index(self, idx):
         task = self._get_by_index(idx)
         if task:
@@ -52,8 +49,6 @@ class TaskSystem:
     def Save(self) -> bool:
         return taskSave(self.__tasks)
 
-    # -----------分割线------------
-    # 修改属性的代码写在后面，注意属性和修改的方法一一对应
 
     def update_completed(self, idx: int, status: bool) -> bool:
        """更新任务的完成状态"""
@@ -77,3 +72,44 @@ class TaskSystem:
             task.priority = priority
             return True
         return False
+
+    from datetime import datetime
+
+    def get_filtered_tasks(self, filter_type: str):
+        """根据状态筛选任务"""
+        from datetime import datetime  # 保证 import 在函数内部
+        result = []  # 必须初始化
+        if filter_type == "unfinished":
+            result = [t for t in self._tasks if not t.is_completed]
+        elif filter_type == "finished":
+            result = [t for t in self._tasks if t.is_completed]
+        elif filter_type == "overdue":
+            now = datetime.now()
+            for t in self._tasks:
+                if not t.is_completed and t.due_date:
+                    try:
+                        due = datetime.strptime(t.due_date, "%Y-%m-%d")
+                        if due < now:
+                            result.append(t)
+                    except Exception:
+                        pass
+        return [deepcopy(t) for t in result]
+
+        def search_tasks(self, keyword: str):
+            keyword = keyword.lower()
+        result = []
+        for t in self._tasks:
+            title = getattr(t, 'title', '')
+            if isinstance(title, str) and keyword in title.lower():
+                result.append(t)
+        return [deepcopy(t) for t in result]
+
+    def sort_tasks(self, sort_by: str):
+        """对任务进行排序"""
+        if sort_by == "priority":
+            result = sorted(self._tasks, key=lambda x: x.priority)
+        elif sort_by == "due_date":
+            result = sorted(self._tasks, key=lambda x: x.due_date if x.due_date else "9999-99-99")
+        else:
+            result = self._tasks
+        return [deepcopy(t) for t in result]
