@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import datetime
 
 from core.taskModule.taskSL import taskSave
 
@@ -62,7 +63,7 @@ class TaskSystem:
             task.is_completed = status
             return True
        return False
-    def update_due_date(self, idx: int, due_date: str) -> bool:
+    def update_due_date(self, idx: int, due_date: datetime) -> bool:
         """更新任务的截止日期"""
         task = self._get_by_index(idx)
         if task:
