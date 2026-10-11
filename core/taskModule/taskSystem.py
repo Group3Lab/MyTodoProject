@@ -77,3 +77,7 @@ class TaskSystem:
             task.priority = priority
             return True
         return False
+
+    def get_all_tasks(self) -> list[Task]:
+        """返回任务列表的副本（deepcopy），供菜单只读使用；筛选、排序都在菜单里做"""
+        return deepcopy(self.__tasks)
