@@ -42,6 +42,18 @@ https://github.com/Group3Lab/MyTodoProject
 - 写完一个文件就提交一次，不要写「更新」「修改一下」这类没有信息量的描述。
 - 提交不能集中在最后一天。
 
+# 测试（详细用法阅读文档：测试指南）
+
+改完代码后，在仓库根目录运行一条命令即可确认没改坏已有功能：
+
+```bash
+python run_tests.py          # 全部测试
+python run_tests.py unit     # 只跑白盒单测
+python run_tests.py brute    # 只跑黑盒暴力测试
+```
+
+测试用标准库 `unittest`，无需安装任何依赖；跑完会自动清理临时数据，不影响 `data/tasks.json`。测试是加分项，改动被测功能时请顺带补/改用例。
+
 # 项目需求说明 （具体详细需求阅读文档：作业需求）
 ---
 
