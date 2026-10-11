@@ -123,6 +123,28 @@ class TestExtremeSearch(BruteBase):
         self.run_ok([MENU_SEARCH, "4", "", "", MENU_EXIT])       # 空关键字
         self.run_ok([MENU_SEARCH, "4", "不存在的词", "", MENU_EXIT])
         self.run_ok([MENU_SEARCH, "4", "x" * 500, "", MENU_EXIT])
+        # 正则元字符 / 全角空格 / emoji：必须按字面匹配且不崩溃
+        self.run_ok([MENU_SEARCH, "4", ".*", "", MENU_EXIT])
+        self.run_ok([MENU_SEARCH, "4", "（", "", MENU_EXIT])
+        self.run_ok([MENU_SEARCH, "4", "　", "", MENU_EXIT])
+        self.run_ok([MENU_SEARCH, "4", "📚", "", MENU_EXIT])
+
+    def test_search_result_sorted_by_relevance(self):
+        """端到端验证：菜单输出里的结果顺序就是关联度从高到低。"""
+        write_data(json.dumps([
+            {"title": "今天写作业", "priority": "中", "due_date": None, "is_completed": False},
+            {"title": "作业", "priority": "中", "due_date": None, "is_completed": False},
+            {"title": "背书", "priority": "低", "due_date": None, "is_completed": False},
+            {"title": "写作业", "priority": "中", "due_date": None, "is_completed": False},
+        ], ensure_ascii=False))
+        proc = self.run_ok([MENU_SEARCH, "4", "作业", "", MENU_EXIT])
+        # 只保留 "编号. 标题 | ..." 形式的结果行，取标题部分
+        titles = []
+        for line in proc.stdout.splitlines():
+            head, sep, rest = line.partition(". ")
+            if sep and head.isdigit() and " | " in rest:
+                titles.append(rest.split(" | ")[0])
+        self.assertEqual(titles, ["作业", "写作业", "今天写作业"])  # 「背书」不匹配，被过滤
 
 
 class TestExtremeOperations(BruteBase):
