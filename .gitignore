@@ -71,6 +71,10 @@ out/
 *.log
 .cache/
 
+# 程序运行产生的数据（任务保存文件、导出的报告）
+data/
+reports/
+
 # 环境变量
 .env
 .env.local
