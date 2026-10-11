@@ -57,7 +57,7 @@ class MenuFactory:
         添加新菜单只需在这里添加一行注册代码
         """
         # 功能菜单
-        menu_sys.register(MenuA())
+        # menu_sys.register(MenuA())
         menu_sys.register(ViewTasksMenu(task_system))
         menu_sys.register(AddTaskMenu(task_system))
         menu_sys.register(SearchTasksMenu(task_system))
