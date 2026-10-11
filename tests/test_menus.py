@@ -141,6 +141,67 @@ class TestMenuReturnCodes(unittest.TestCase):
         self._assert_int_zero(SearchTasksMenu(make_ts(1)), ["x"])
 
 
+class TestSearchRelevance(unittest.TestCase):
+    """关键字搜索的关联度排序（回归：曾按「关键字出现位置」排序）。"""
+
+    @staticmethod
+    def _do_search(titles, keyword):
+        """跑一次搜索菜单（选 4 按关键字搜索），返回打印出来的结果标题顺序。"""
+        ts = TaskSystem()
+        for title in titles:
+            ts.add(Task(title))
+        # 菜单内部会先问「请选择操作」，选 4 后才问「请输入搜索关键字」
+        with patch("builtins.input", side_effect=["4", keyword]):
+            with patch("sys.stdout", new=io.StringIO()) as out:
+                ret = SearchTasksMenu(ts).execute()
+        assert ret == 0, f"搜索菜单应返回 0，实际为 {ret}"
+        # 结果行形如 "1. 标题 | 优先级 | 截止日期 | 状态"；菜单选项行没有 " | "
+        results = []
+        for line in out.getvalue().splitlines():
+            head, sep, rest = line.partition(". ")
+            if sep and head.isdigit() and " | " in rest:
+                results.append(rest.split(" | ")[0])
+        return results
+
+    def test_relevance_order(self):
+        """完全匹配 > 出现多次的长标题 > 词尾匹配 > 靠后出现；不匹配的被过滤"""
+        titles = ["作业", "写作业", "今天写作业", "作业很多，先写数学作业", "背书"]
+        self.assertEqual(
+            self._do_search(titles, "作业"),
+            ["作业", "作业很多，先写数学作业", "写作业", "今天写作业"],
+        )
+
+    def test_no_match_returns_empty(self):
+        self.assertEqual(self._do_search(["写作业", "背书"], "不存在的词"), [])
+
+    def test_case_insensitive(self):
+        """英文关键字不区分大小写，且整词匹配排在嵌入匹配之前"""
+        self.assertEqual(
+            self._do_search(["abc", "ab", "xxab"], "AB"),
+            ["ab", "abc", "xxab"],
+        )
+
+    def test_empty_keyword_shows_all(self):
+        """空关键字不筛选，按原顺序返回全部任务"""
+        titles = ["任务A", "任务B", "任务C"]
+        self.assertEqual(self._do_search(titles, "   "), titles)
+
+    def test_long_title_does_not_beat_multiple_hits(self):
+        """长标题不因长度被倒扣，出现次数多仍排在短标题前面"""
+        titles = ["今天作业作业作业" * 10, "今天写作业"]
+        self.assertEqual(
+            self._do_search(titles, "作业"),
+            ["今天作业作业作业" * 10, "今天写作业"],
+        )
+
+    def test_keyword_special_chars_are_literal(self):
+        """关键字含正则元字符时按字面匹配，不作为模式解析"""
+        self.assertEqual(
+            self._do_search(["a.*b", "aXXb", "a.b"], ".*"),
+            ["a.*b"],
+        )
+
+
 class TestAddTaskMenu(unittest.TestCase):
     def test_add_valid(self):
         ts = make_ts(0)
