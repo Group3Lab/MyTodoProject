@@ -66,3 +66,5 @@ class MenuFactory:
         menu_sys.register(SetPriorityMenu(task_system))
         menu_sys.register(ExportReportMenu(task_system))
         menu_sys.register(SearchAndFilterMenu(task_system))
+
+ 

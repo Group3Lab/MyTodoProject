@@ -1,5 +1,7 @@
 from copy import deepcopy
 from datetime import datetime
+import keyword
+from unittest import result
 
 from core.taskModule.taskSL import taskSave
 
@@ -99,13 +101,43 @@ class TaskSystem:
         return [deepcopy(t) for t in result]
 
     def search_tasks(self, keyword: str):
-        """根据关键字搜索任务"""
+           def search_tasks(self, keyword: str):
+            """根据关键字搜索任务，并按匹配度排序"""
+            if not keyword:
+                return [] 
+            
+            
+            keyword = keyword.lower()
+    def search_tasks(self, keyword: str):
+        """根据关键字搜索任务，并按匹配度排序"""
+        if not keyword:
+            return []  # 关键字为空直接返回空列表
+            
         keyword = keyword.lower()
-        result = []
+        scored_results = []  # 用来存 (匹配得分, 任务) 的元组
+
         for t in self.__tasks:
             title = getattr(t, 'title', '')
-            if isinstance(title, str) and keyword in title.lower():
-                result.append(t)
+            if not isinstance(title, str):
+                continue
+                
+            title_lower = title.lower()
+            if keyword in title_lower:
+                # 计算匹配度得分：完全匹配 > 开头匹配 > 包含匹配
+                if title_lower == keyword:
+                    score = 3  # 完全匹配（比如搜"吃饭"，标题就是"吃饭"）
+                elif title_lower.startswith(keyword):
+                    score = 2  # 开头匹配（比如搜"吃"，标题是"吃饭"）
+                else:
+                    score = 1  # 包含匹配（比如搜"吃"，标题是"去吃饭"）
+                    
+                scored_results.append((score, t))
+
+        # 根据得分降序排列（得分高的排在最前面）
+        scored_results.sort(key=lambda x: x[0], reverse=True)
+
+        # 提取排好序的任务列表，并返回深拷贝
+        result = [item[1] for item in scored_results]
         return [deepcopy(t) for t in result]
 
     def sort_tasks(self, sort_by: str):
