@@ -16,6 +16,9 @@ from Menus.MarkDoneMenu import MarkDoneMenu
 from Menus.SetDueDateMenu import SetDueDateMenu
 from Menus.SetPriorityMenu import SetPriorityMenu
 from Menus.SearchAndFilterMenu import SearchAndFilterMenu
+from Menus.ExportReportMenu import ExportReportMenu
+
+
 class MenuFactory:
     """菜单工厂，负责创建和配置菜单系统"""
 
