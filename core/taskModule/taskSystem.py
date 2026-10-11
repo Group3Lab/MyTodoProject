@@ -20,10 +20,9 @@ class TaskSystem:
             obj.__tasks = list(tasks)
         return obj
 
-    def add(self, title: str) -> Task:
-        task = Task(title)
-        self.__tasks.append(task)
-        return task
+    def add(self, newTask: Task) -> Task:
+        self.__tasks.append(newTask)
+        return newTask
 
     # 返回本身（引用）,内部使用，修改数据请走专用方法
     def _get_by_index(self, idx: int) -> Task:
