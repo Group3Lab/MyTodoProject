@@ -1,6 +1,6 @@
 """白盒单测：TaskSystem（core/taskModule/taskSystem.py）。
 
-覆盖：增删、按索引读取（副本隔离）、计数、更新方法、越界处理。
+覆盖：增删、按索引读取（返回内部引用）、计数、更新方法、越界处理。
 """
 
 import sys
@@ -52,12 +52,13 @@ class TestCreateFromList(unittest.TestCase):
 
 
 class TestIndexAccess(unittest.TestCase):
-    def test_get_by_index_returns_copy(self):
+    def test_get_by_index_returns_reference(self):
+        """已移除 deepcopy 保护：get_by_index 返回内部引用，改动会直接生效。"""
         ts = make_ts(1)
         got = ts.get_by_index(0)
+        self.assertIs(got, ts.get_by_index(0))  # 同一个对象（引用）
         got.is_completed = True
-        # 改副本不应影响内部数据
-        self.assertFalse(ts.get_by_index(0).is_completed)
+        self.assertTrue(ts.get_by_index(0).is_completed)
 
     def test_get_out_of_range_returns_none(self):
         ts = make_ts(2)
@@ -65,11 +66,13 @@ class TestIndexAccess(unittest.TestCase):
         self.assertIsNone(ts.get_by_index(2))
         self.assertIsNone(ts.get_by_index(999))
 
-    def test_get_all_tasks_is_copy(self):
+    def test_get_all_tasks_returns_reference(self):
+        """已移除 deepcopy 保护：get_all_tasks 返回内部列表引用。"""
         ts = make_ts(2)
         all_tasks = ts.get_all_tasks()
+        self.assertIs(all_tasks, ts.get_all_tasks())  # 同一个列表对象（引用）
         all_tasks.pop()
-        self.assertEqual(ts.get_task_count(), 2)
+        self.assertEqual(ts.get_task_count(), 1)
 
 
 class TestDelete(unittest.TestCase):

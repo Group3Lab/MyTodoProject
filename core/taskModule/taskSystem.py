@@ -1,4 +1,3 @@
-from copy import deepcopy
 from datetime import datetime
 
 from core.taskModule.taskSL import taskSave
@@ -30,11 +29,12 @@ class TaskSystem:
             return self.__tasks[idx]
         return None
 
-    # 返回副本，只给查不给改
+    # 曾受保护：早期这里返回 deepcopy 副本（只给查不给改），现已移除拷贝，直接返回内部引用；
+    # 修改数据请仍走 update_xxx 专用方法，不要直接改这里拿到的对象
     def get_by_index(self, idx):
         task = self._get_by_index(idx)
         if task:
-            return deepcopy(task)
+            return task
         return None
 
     def delete(self, idx: int) -> bool:
@@ -79,5 +79,9 @@ class TaskSystem:
         return False
 
     def get_all_tasks(self) -> list[Task]:
-        """返回任务列表的副本（deepcopy），供菜单只读使用；筛选、排序都在菜单里做"""
-        return deepcopy(self.__tasks)
+        """返回任务列表本身（引用），供菜单只读使用；筛选、排序都在菜单里做
+
+        曾受保护：早期这里返回 deepcopy 副本，现已移除拷贝，直接返回内部列表引用，
+        调用方只应读取，不要修改里面的任务或列表结构。
+        """
+        return self.__tasks
