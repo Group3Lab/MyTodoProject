@@ -12,6 +12,7 @@ class TaskSystem:
     def __init__(self):
         self.__tasks = []
 
+
     # 备用构造函数：用已有的任务列表创建一个 TaskSystem
     @classmethod
     def CreateFromList(cls, tasks: list[Task]) -> "TaskSystem":
@@ -20,12 +21,10 @@ class TaskSystem:
             obj.__tasks = list(tasks)
         return obj
 
-    def add(self, title: str) -> Task:
-        task = Task(title)
-        self.__tasks.append(task)
-        return task
+    def add(self, newtask: Task) -> Task:
+            self.__tasks.append(newtask)
+            return newtask
 
-    # 返回本身（引用）,内部使用，修改数据请走专用方法
     def _get_by_index(self, idx: int) -> Task:
         if 0 <= idx <= len(self.__tasks)-1:
             return self.__tasks[idx]
