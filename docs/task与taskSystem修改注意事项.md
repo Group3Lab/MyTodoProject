@@ -4,7 +4,7 @@
 
 **这两个文件谁都能改，没有「专属负责人」。** 写这份文档不是划地盘，而是因为这两个文件是所有菜单的公共底座：改动会影响每个人的功能，所以更要提前说清楚怎么改。约定是为了让大家随便改也不会互相踩到，而不是限制谁不能改。
 
-配套阅读：[添加新功能指南](./添加新功能指南.md)（讲怎么加菜单）、[作业需求](./作业需求.md)（讲最终要实现什么）。
+配套阅读：[添加新功能指南](./添加新功能指南.md)（讲怎么加菜单）、[测试指南](./测试指南.md)（讲改完怎么验证没改坏）、[作业需求](./作业需求.md)（讲最终要实现什么）。
 
 ## 一、模块职责与分层
 
@@ -12,13 +12,14 @@
 | --- | --- | --- |
 | 数据模型 | `core/taskModule/task.py` | 只描述「一条任务」有哪些属性、怎么校验 |
 | 数据管理 | `core/taskModule/taskSystem.py` | 保存任务列表，提供增删改查接口 |
-| 菜单层 | `menus/*.py` | 只负责交互，通过 `TaskSystem` 的公开方法读写数据 |
+| 数据存取 | `core/taskModule/taskSL.py` | 负责 `data/tasks.json` 的保存与读取 |
+| 菜单层 | `Menus/*.py` | 只负责交互，通过 `TaskSystem` 的公开方法读写数据 |
 
 三层每个人都可以改；分工只是建议，不是门槛。唯一的要求是**改哪一层就守住那一层的规矩**：
 
 - 改 `task.py`：属性、校验、序列化这三件事归它管。
 - 改 `taskSystem.py`：列表的增删改查、索引边界归它管。
-- 改 `menus/`：只管交互，不要绕开 `TaskSystem` 直接操作数据。
+- 改 `Menus/`：只管交互，不要绕开 `TaskSystem` 直接操作数据。
 
 **核心原则：数据合法性只能由 `Task` / `TaskSystem` 保证；菜单层不允许碰 `Task` 的内部字段。**
 
@@ -46,21 +47,21 @@
 3. **校验逻辑必须留在构造函数 / setter 里**
    现有标题校验（空、全空白抛 `ValueError`）不能挪到菜单层。菜单层只做输入提示，真正拒绝非法数据的是 `Task`。
 4. **setter 必须写防乱写入逻辑**
-   参照被注释掉的那段 `is_completed` 写法：
+   参照现有 `is_completed` 的实现（已落地）：
    ```python
    @is_completed.setter
    def is_completed(self, value: bool):
-       if not isinstance(value, bool):      # 补充防乱写入逻辑
-           raise ValueError("完成状态必须是布尔值")
+       if not isinstance(value, bool):      # 防乱写入：只接受布尔值
+           raise ValueError("is_completed must be a boolean value")
        self.__is_completed = value
    ```
-   恢复注释代码时要补上类型/范围校验，否则外部能写入 `"yes"`、`1` 这类脏数据。
+   新增属性时照这个套路补上类型/范围校验，否则外部能写入 `"yes"`、`1` 这类脏数据。
 5. **`to_string()` / 解析格式与需求保持一致**
    作业要求一行文本、字段用 `|` 分隔：
    ```
    标题 | 优先级 | 截止日期 | 是否完成
    ```
-   注意被注释的旧写法是 `f"{self.title}|{self.is_completed}"`，它输出的是 `True/False`，**不符合需求**，要按需求改成 `高 / 中 / 低`、`YYYY-MM-DD`、`未完成 / 已完成`。存储、显示、解析三处必须用同一种格式，解析时字段数、顺序要严格对应，标题本身不允许包含 `|`。
+   现有 `to_string()` 已按需求输出中文与 `YYYY-MM-DD`（见 [task.py](../core/taskModule/task.py)）。存储、显示、解析三处必须用同一种格式，解析时字段数、顺序要严格对应，标题本身不允许包含 `|`。
 6. **新增字段的默认值要「可读回」**
    日期统一 `YYYY-MM-DD`（月、日补 0），这样比较先后可以直接比字符串大小；优先级只允许 `高/中/低`，比较时不要直接按字符串排序。
 
@@ -83,7 +84,7 @@
    这套方法是「先创建再走流程设置」的第二步：`Task.__init__` 里先把属性建好（默认值），这里再提供按流程设值的入口。
 
    ```python
-   def update_priority(self, idx: int, priority: str) -> bool:
+   def update_priority(self, idx: int, priority: Priority) -> bool:
        """更新任务的优先级（走流程设置，不直接改字段）"""
        task = self._get_by_index(idx)
        if task:
@@ -94,11 +95,11 @@
 
    对应地，`Task` 那边要同时提供 `priority` 的 `@property` + 带校验的 setter，两边一起改才是一条完整的流程。
 6. **不要修改已有的公开方法签名**
-   `add(title)`、`get_by_index(idx)`、`delete(idx)`、`get_task_count()` 已被多个菜单使用。要加参数必须给默认值；要改返回值必须同步排查所有调用点。
+   `add(newTask)`、`get_by_index(idx)`、`delete(idx)`、`get_task_count()` 已被多个菜单使用。要加参数必须给默认值；要改返回值必须同步排查所有调用点。
 7. **保持 `add()` 的返回值和职责**
-   `add()` 返回新建的 `Task` 对象（菜单靠它打印标题），不要改成返回索引或 `None`。
-8. **目前被注释的接口不要擅自放开**
-   `update_completed()` 和 `Task.is_completed` 是留给「标记完成」需求用的。放开时要同时改 `task.py`（属性 + setter）和 `taskSystem.py`（更新方法），只改一边会直接报 `AttributeError`。
+   `add()` 接收一个已构造好的 `Task` 对象，返回该 `Task`（菜单靠它打印标题），不要改成返回索引或 `None`；也不要让 `add()` 去解析标题字符串——构造与校验是 `Task` 的职责。
+8. **改动核心接口要连带更新测试**
+   `update_completed()` / `update_priority()` / `update_due_date()` 及各属性 setter 均已实现并启用。改这些方法签名或行为时，[tests/test_task_system.py](../tests/test_task_system.py) 等用例会失败提醒；确认是预期改动后再同步更新用例，跑 `python run_tests.py` 全绿才算完成。
 
 ## 四、索引与编号约定（最容易出错）
 
@@ -113,7 +114,7 @@
 - [ ] 新字段是不是走「先创建默认值 → 再用 `update_xxx` 按流程设值」，而不是直接把值塞进构造函数？
 - [ ] 菜单层有没有调用 `_get_by_index()` 或直接改 `Task` 的私有字段？
 - [ ] 新增的修改方法是否返回 `bool`、是否先做越界判断？
-- [ ] 改过的方法签名，是否排查了 `menus/` 下所有调用点？
+- [ ] 改过的方法签名，是否排查了 `Menus/` 下所有调用点？是否同步更新了对应测试并跑通 `python run_tests.py`？
 - [ ] 数据格式（`|` 分隔、字段顺序、日期补 0）在存储/显示/解析三处是否一致？
 - [ ] 用非法输入自测：空标题、超大编号、非数字、直接回车，程序不崩溃、不出现报错堆栈。
 
