@@ -14,11 +14,14 @@ class SetPriorityMenu(Menu):
     def execute(self) -> int:
         total_tasks = self.__task_system.get_task_count()
         if total_tasks == 0:
-            print("====任务列表====")
-            print("可选优先级:1=Low低  2=Medium中  3=High高")
+            print("暂无任务，无法设置优先级")
+            return 0
+
+        print("====任务列表====")
+        print("可选优先级:1=Low低  2=Medium中  3=High高")
         for idx in range(total_tasks):
             task = self.__task_system.get_by_index(idx)
-            print(f"{idx + 1}: {task.title}  当前优先级：{task.priority.name}")
+            print(f"{idx + 1}: {task.title}  当前优先级：{task.priority.value}")
 
         try:
             input_num = int(input("请输入要设置的任务编号: ").strip())
@@ -38,7 +41,6 @@ class SetPriorityMenu(Menu):
                 p = Priority.Medium
             elif priority == 3:
                 p = Priority.High
-          
 
             result = self.__task_system.update_priority(target_idx, p)
             if result:
