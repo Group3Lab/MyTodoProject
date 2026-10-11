@@ -40,6 +40,6 @@ class ViewTasksMenu(Menu):
 
         for i in range(count):
             task = self.__task_system.get_by_index(i)
-            #status = "已完成" if task.is_completed else "未完成"
-            #print(f"{i + 1}. {task.title} [{status}]")
-            print(f"{i + 1}. {task.title}")
+
+            # 调用 Task 自带的 to_string 方法显示完整信息
+            print(f"{i + 1}. {task.to_string()}")
