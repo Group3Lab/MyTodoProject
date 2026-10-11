@@ -20,7 +20,7 @@ class Task:
         self.__title = title.strip()
         self.__is_completed = False
         self.__has_due_date: bool = False
-        self.__due_date:datetime=datetime.now()
+        self.__due_date:datetime=None
         self.__priority:Priority=Priority.Medium
 
     @property

@@ -35,7 +35,7 @@ class AddTaskMenu(Menu):
             
             # 2. 调用底层的 add 方法
             task = self.task_system.add(new_task)
-            print(f"\n添加成功！{task.title}")
+            print(f"\n添加成功!{task.title}")
 
             # 3. 获取索引并补充日期和优先级
             new_index = self.task_system.get_task_count() - 1
