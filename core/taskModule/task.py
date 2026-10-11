@@ -57,7 +57,21 @@ class Task:
         if not isinstance(value, Priority):
             raise ValueError("priority must be an instance of Priority Enum")
         self.__priority = value
+
+
     def to_string(self):
-        date_str = self.__due_date.strftime("%Y-%m-%d") 
-    #   # 提示：老师要求的格式更复杂，包含优先级和日期，自己改！
-        return f"{self.title}|{self.is_completed}|{self.priority.name}|{date_str }"
+    """把任务信息转成一行字符串"""
+    # 状态：把 True/False 转成中文
+    status = "已完成" if self.is_completed else "未完成"
+
+    # 优先级：枚举 .value 拿到中文 "高"/"中"/"低"
+    priority = self.priority.value
+
+    # 截止日期：如果有就格式化成 YYYY-MM-DD，没有就显示"无截止日期"
+    if self.has_due_date:
+        due_date = self.due_date.strftime("%Y-%m-%d")
+    else:
+        due_date = "无截止日期"
+
+    # 返回：优先级、标题、截止日期、状态
+    return f"[{priority}] {self.title} | 截止日期: {due_date} | 状态: {status}"
