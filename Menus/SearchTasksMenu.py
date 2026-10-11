@@ -4,6 +4,7 @@
 筛选、排序全部在本菜单内完成，TaskSystem 只提供完整列表副本
 """
 
+import re
 from datetime import date
 
 from core.menuModule.menu import Menu
@@ -52,7 +53,7 @@ class SearchTasksMenu(Menu):
         print("1. 只看未完成")
         print("2. 只看已完成")
         print("3. 只看已逾期")
-        print("4. 按关键字搜索")
+        print("4. 按关键字搜索（结果按关联度排序）")
         print("5. 按优先级排序查看")
         print("6. 按截止日期排序查看")
         print("=" * 50)
@@ -79,15 +80,63 @@ class SearchTasksMenu(Menu):
         return (not task.is_completed) and task.has_due_date and task.due_date.date() < date.today()
 
     def __search_by_keyword(self, tasks):
-        """按关键字搜索标题（不区分大小写），结果按关键字在标题中出现的位置排序"""
+        """按关键字搜索标题（不区分大小写），结果按关联度由高到低排序"""
         keyword = input("请输入搜索关键字: ").strip()
         if not keyword:
             print("关键字为空，显示全部任务")
             return tasks
         lowered = keyword.lower()
-        matched = [t for t in tasks if lowered in t.title.lower()]
-        # 关键字出现的位置越靠前，排得越前；位置相同按标题字母顺序
-        return sorted(matched, key=lambda t: (t.title.lower().find(lowered), t.title.lower()))
+        # 计算每条任务的关联度，顺带完成筛选（关联度为 0 表示不匹配）
+        scored = [(self.__calc_relevance(t.title, keyword, lowered), t) for t in tasks]
+        matched = [(score, t) for score, t in scored if score > 0]
+        # 关联度高的在前；关联度相同时标题字母顺序，保证输出稳定
+        matched.sort(key=lambda pair: (-pair[0], pair[1].title.lower()))
+        return [t for _, t in matched]
+
+    @staticmethod
+    def __calc_relevance(title: str, keyword: str, lowered: str) -> int:
+        """给标题与关键字打分：完全不匹配返回 0，分越高越相关
+
+        打分规则（可累加，做到「整体匹配 > 单词匹配 > 位置靠前」）：
+        - 与关键字完全相等：+1000（最强关联）
+        - 以关键字开头：+500；否则关键字出现在越靠前的位置，得分越高（最多 300）
+        - 标题越短（长度越小）说明关键字占比越大：最多 +200，长标题保底 +120，
+          避免「长标题里出现多次关键字」反而被长度惩罚压过短标题
+        - 单词匹配：标题按空格/标点切分后，某个单词以关键字开头 +150，包含关键字 +100
+        - 中文按单字匹配，因此再按「关键字在标题中被完整匹配的次数」加分，每次 +50
+        """
+        # 空关键字在调用前已被拦截，这里只做防御
+        if not lowered:
+            return 0
+
+        lowered_title = title.lower()
+        index = lowered_title.find(lowered)
+        if index < 0:
+            return 0
+
+        score = 0
+        if lowered_title == lowered:
+            score += 1000
+        elif index == 0:
+            score += 500
+        else:
+            score += max(0, 300 - index * 10)
+
+        # 标题越短（长度越小）说明关键字占比越大；长标题还有下限保护，避免倒扣
+        # 长标题里的多次完整匹配（count）会把这部分抵消回来
+        score += max(0.6, 1 - len(title) / 100) * 200
+
+        # 空格、常见中英文标点都当作单词分隔符（str.split 不传参数只按空白切分）
+        for word in re.split(r"[\s,，.。;；:：!！?？、/\\|]+", lowered_title):
+            if not word:
+                continue
+            if word.startswith(lowered):
+                score += 150
+            elif lowered in word:
+                score += 100
+
+        score += lowered_title.count(lowered) * 50
+        return score
 
     @staticmethod
     def __sort_by_priority(tasks):
