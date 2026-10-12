@@ -21,8 +21,7 @@ class MyDeleteTaskMenu(Menu):
         print("任务列表：")
         for idx in range(total_tasks):
             task = self._task_system.get_by_index(idx)
-    
-            print(f"{idx + 1}: {task.title}") 
+            print(f"{idx + 1}: {task.title}")
         try:
             show_num = int(input("请输入要删除的任务编号："))
             idx = show_num - 1
@@ -37,6 +36,7 @@ class MyDeleteTaskMenu(Menu):
                 print("任务已删除。")
             else:
                 print("任务编号不存在，删除失败。")
+            return 0
         except ValueError:
             print("输入错误，请输入数字。")
             return 0

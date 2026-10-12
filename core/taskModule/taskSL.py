@@ -40,7 +40,8 @@ def taskLoad()->list[Task]:#实现自动读取文件
     if not _DATA_FILE.exists():#首次运行时没有文件处理
         return []
     try:
-        with open(_DATA_FILE, "r", encoding="utf-8") as f:
+        # 用 utf-8-sig 读取：兼容有无 BOM 的文件（记事本等编辑器保存会加 BOM）
+        with open(_DATA_FILE, "r", encoding="utf-8-sig") as f:
             payload = json.load(f)
     except Exception as e:
         print(f"[错误] 任务数据文件读取失败: {e}")
