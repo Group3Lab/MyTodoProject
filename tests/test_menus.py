@@ -6,11 +6,11 @@
 """
 
 import io
-import os
 import sys
 import unittest
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -269,8 +269,24 @@ class TestExportReport(unittest.TestCase):
 class TestChartMenu(unittest.TestCase):
     """OpenCV 统计图表菜单（Menus/ChartMenu.py）。
 
-    在临时目录里当 CWD 运行，避免污染项目根目录的 chart.png。
+    图表固定输出到仓库根的 data/chart.png；测试通过 monkeypatch 把输出目录
+    指到临时目录，避免污染真实的 data/。
     """
+
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self._dir = Path(self._tmp.name) / "data"
+        from Menus import ChartMenu as chart_mod
+        self._chart_mod = chart_mod
+        self._old_dir = chart_mod._CHART_DIR
+        self._old_file = chart_mod._CHART_FILE
+        chart_mod._CHART_DIR = self._dir
+        chart_mod._CHART_FILE = self._dir / "chart.png"
+
+    def tearDown(self):
+        self._chart_mod._CHART_DIR = self._old_dir
+        self._chart_mod._CHART_FILE = self._old_file
+        self._tmp.cleanup()
 
     @staticmethod
     def _make_priority_ts():
@@ -282,49 +298,40 @@ class TestChartMenu(unittest.TestCase):
                 ts.add(t)
         return ts
 
-    def _run_in_tmp(self, ts):
-        from tempfile import TemporaryDirectory
-        from Menus.ChartMenu import ChartMenu
-        with TemporaryDirectory() as tmp:
-            old = os.getcwd()
-            os.chdir(tmp)
-            try:
-                with patch("sys.stdout", new=io.StringIO()):
-                    ret = ChartMenu(ts).execute()
-                chart = Path(tmp) / "chart.png"
-                exists = chart.exists()
-                size = chart.stat().st_size if exists else 0
-            finally:
-                os.chdir(old)
+    def _run(self, ts):
+        with patch("sys.stdout", new=io.StringIO()):
+            ret = self._chart_mod.ChartMenu(ts).execute()
+        chart = self._dir / "chart.png"
+        exists = chart.exists()
+        size = chart.stat().st_size if exists else 0
         return ret, exists, size
 
     def test_generates_chart_png(self):
-        ret, exists, size = self._run_in_tmp(self._make_priority_ts())
+        ret, exists, size = self._run(self._make_priority_ts())
         self.assertEqual(ret, 0)
         self.assertTrue(exists, "应生成 chart.png")
         self.assertGreater(size, 0, "chart.png 不应为空")
 
     def test_valid_png_header(self):
         """生成的文件应是合法 PNG（头 8 字节固定）。"""
-        from tempfile import TemporaryDirectory
-        from Menus.ChartMenu import ChartMenu
-        with TemporaryDirectory() as tmp:
-            old = os.getcwd()
-            os.chdir(tmp)
-            try:
-                with patch("sys.stdout", new=io.StringIO()):
-                    ChartMenu(self._make_priority_ts()).execute()
-                head = (Path(tmp) / "chart.png").read_bytes()[:8]
-            finally:
-                os.chdir(old)
+        self._run(self._make_priority_ts())
+        head = (self._dir / "chart.png").read_bytes()[:8]
         self.assertEqual(head, b"\x89PNG\r\n\x1a\n")
 
     def test_empty_list_does_not_crash(self):
         """空清单也应返回 0 并出图（内部用 max(...,1) 防除零）。"""
-        ret, exists, size = self._run_in_tmp(make_ts(0))
+        ret, exists, size = self._run(make_ts(0))
         self.assertEqual(ret, 0)
         self.assertTrue(exists)
         self.assertGreater(size, 0)
+
+    def test_creates_data_dir_if_missing(self):
+        """输出目录不存在时应自动创建。"""
+        self.assertFalse(self._dir.exists())
+        ret, exists, _ = self._run(self._make_priority_ts())
+        self.assertEqual(ret, 0)
+        self.assertTrue(self._dir.exists())
+        self.assertTrue(exists)
 
     def test_counts_ignore_completed(self):
         """统计应忽略已完成任务：高2/中3/低1，另有已完成的高/中不计数。"""
@@ -338,8 +345,7 @@ class TestChartMenu(unittest.TestCase):
         done_mid.is_completed = True
         ts.add(done_mid)
 
-        from Menus.ChartMenu import ChartMenu
-        menu = ChartMenu(ts)
+        menu = self._chart_mod.ChartMenu(ts)
         with patch("sys.stdout", new=io.StringIO()):
             result = menu._ChartMenu__count_by_priority()
         self.assertEqual(result, (2, 3, 1))
@@ -351,8 +357,7 @@ class TestChartMenu(unittest.TestCase):
             t = Task("任务")
             t.priority = priority
             ts.add(t)
-        from Menus.ChartMenu import ChartMenu
-        menu = ChartMenu(ts)
+        menu = self._chart_mod.ChartMenu(ts)
         with patch("sys.stdout", new=io.StringIO()):
             result = menu._ChartMenu__count_by_priority()
         self.assertEqual(result, (1, 1, 1))

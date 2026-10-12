@@ -276,17 +276,17 @@ class TestExportReportE2E(BruteBase):
 class TestChartE2E(BruteBase):
     """OpenCV 统计图表菜单的端到端测试（主菜单 9）。
 
-    图表固定写到 CWD（仓库根目录）的 chart.png，测试后清理。
+    图表固定写到仓库根的 data/chart.png，测试后清理。
     """
 
-    CHART = H.REPO_ROOT / "chart.png"
+    CHART = H.DATA_FILE.parent / "chart.png"
 
     def tearDown(self):
         self.CHART.unlink(missing_ok=True)
         super().tearDown()
 
     def test_generate_chart_from_real_data(self):
-        """有任务时生成 chart.png，且是合法 PNG。"""
+        """有任务时生成 data/chart.png，且是合法 PNG。"""
         write_data(json.dumps([
             {"title": "高1", "priority": "高", "due_date": None, "is_completed": False},
             {"title": "高2", "priority": "高", "due_date": None, "is_completed": False},
@@ -296,7 +296,7 @@ class TestChartE2E(BruteBase):
         ], ensure_ascii=False))
         proc = self.run_ok([MENU_CHART, "", MENU_EXIT])
         self.assertIn("统计图已保存", proc.stdout)
-        self.assertTrue(self.CHART.exists(), "应生成 chart.png")
+        self.assertTrue(self.CHART.exists(), "应生成 data/chart.png")
         self.assertEqual(self.CHART.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
 
     def test_generate_chart_empty_list(self):
@@ -307,11 +307,7 @@ class TestChartE2E(BruteBase):
         self.assertTrue(self.CHART.exists())
 
     def test_chart_numbers_match_list(self):
-        """图上数字必须与清单一致：通过解码 PNG 尺寸无关的计数封送验证。
-
-        这里改用白盒方式核对：不同数据生成的文件字节不同（非写死），
-        同一份数据重复生成则一致。
-        """
+        """不同数据应生成不同图，说明数字是动态取的、不是写死的。"""
         data_a = json.dumps([{"title": "a", "priority": "高", "due_date": None, "is_completed": False}], ensure_ascii=False)
         write_data(data_a)
         self.run_ok([MENU_CHART, "", MENU_EXIT])
@@ -326,23 +322,23 @@ class TestChartE2E(BruteBase):
         self.assertNotEqual(bytes_a, bytes_b, "不同数据应生成不同图，说明数字不是写死的")
 
     def test_chart_does_not_pollute_git(self):
-        """生成的 chart.png 应被 .gitignore 忽略。"""
+        """生成的 data/chart.png 应被 .gitignore 忽略（data/ 整体忽略）。"""
         import subprocess
         write_data("[]")
         self.run_ok([MENU_CHART, "", MENU_EXIT])
         self.assertTrue(self.CHART.exists())
         r = subprocess.run(
-            ["git", "check-ignore", "-q", "chart.png"],
+            ["git", "check-ignore", "-q", "data/chart.png"],
             cwd=str(H.REPO_ROOT),
         )
-        self.assertEqual(r.returncode, 0, "chart.png 应被 git 忽略")
+        self.assertEqual(r.returncode, 0, "data/chart.png 应被 git 忽略")
 
 
 class TestInteractiveMixedSession(BruteBase):
     """混合操作的长会话，模拟真实使用。"""
 
     def tearDown(self):
-        (H.REPO_ROOT / "chart.png").unlink(missing_ok=True)
+        (H.DATA_FILE.parent / "chart.png").unlink(missing_ok=True)
         super().tearDown()
 
     def test_full_session(self):
