@@ -1,6 +1,7 @@
 """白盒单测：菜单系统与各菜单 execute 的返回码/边界行为。
 
-覆盖：MenuSystem 注册与分发、各菜单空清单处理、非法输入的返回值，
+覆盖：MenuSystem 注册与分发、各菜单空清单处理、非法输入的返回值、
+搜索相关度排序、OpenCV 统计图表（ChartMenu），
 以及回归验证 MarkDoneMenu / SetPriorityMenu / MyDeleteTaskMenu 的已知缺陷已修复。
 """
 
@@ -9,6 +10,7 @@ import sys
 import unittest
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -262,6 +264,103 @@ class TestExportReport(unittest.TestCase):
             self.assertIn("任务清单报告", html)
             self.assertIn("overdue", html)      # 逾期样式
             self.assertIn("过期任务", html)
+
+
+class TestChartMenu(unittest.TestCase):
+    """OpenCV 统计图表菜单（Menus/ChartMenu.py）。
+
+    图表固定输出到仓库根的 reports/chart.png；测试通过 monkeypatch 把输出目录
+    指到临时目录，避免污染真实的 reports/。
+    """
+
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self._dir = Path(self._tmp.name) / "reports"
+        from Menus import ChartMenu as chart_mod
+        self._chart_mod = chart_mod
+        self._old_dir = chart_mod._CHART_DIR
+        self._old_file = chart_mod._CHART_FILE
+        chart_mod._CHART_DIR = self._dir
+        chart_mod._CHART_FILE = self._dir / "chart.png"
+
+    def tearDown(self):
+        self._chart_mod._CHART_DIR = self._old_dir
+        self._chart_mod._CHART_FILE = self._old_file
+        self._tmp.cleanup()
+
+    @staticmethod
+    def _make_priority_ts():
+        ts = make_ts(0)
+        for priority, n in ((Priority.High, 2), (Priority.Medium, 3), (Priority.Low, 1)):
+            for _ in range(n):
+                t = Task("任务")
+                t.priority = priority
+                ts.add(t)
+        return ts
+
+    def _run(self, ts):
+        with patch("sys.stdout", new=io.StringIO()):
+            ret = self._chart_mod.ChartMenu(ts).execute()
+        chart = self._dir / "chart.png"
+        exists = chart.exists()
+        size = chart.stat().st_size if exists else 0
+        return ret, exists, size
+
+    def test_generates_chart_png(self):
+        ret, exists, size = self._run(self._make_priority_ts())
+        self.assertEqual(ret, 0)
+        self.assertTrue(exists, "应生成 chart.png")
+        self.assertGreater(size, 0, "chart.png 不应为空")
+
+    def test_valid_png_header(self):
+        """生成的文件应是合法 PNG（头 8 字节固定）。"""
+        self._run(self._make_priority_ts())
+        head = (self._dir / "chart.png").read_bytes()[:8]
+        self.assertEqual(head, b"\x89PNG\r\n\x1a\n")
+
+    def test_empty_list_does_not_crash(self):
+        """空清单也应返回 0 并出图（内部用 max(...,1) 防除零）。"""
+        ret, exists, size = self._run(make_ts(0))
+        self.assertEqual(ret, 0)
+        self.assertTrue(exists)
+        self.assertGreater(size, 0)
+
+    def test_creates_output_dir_if_missing(self):
+        """输出目录不存在时应自动创建。"""
+        self.assertFalse(self._dir.exists())
+        ret, exists, _ = self._run(self._make_priority_ts())
+        self.assertEqual(ret, 0)
+        self.assertTrue(self._dir.exists())
+        self.assertTrue(exists)
+
+    def test_counts_ignore_completed(self):
+        """统计应忽略已完成任务：高2/中3/低1，另有已完成的高/中不计数。"""
+        ts = self._make_priority_ts()
+        done_high = Task("已完成高")
+        done_high.priority = Priority.High
+        done_high.is_completed = True
+        ts.add(done_high)
+        done_mid = Task("已完成中")
+        done_mid.priority = Priority.Medium
+        done_mid.is_completed = True
+        ts.add(done_mid)
+
+        menu = self._chart_mod.ChartMenu(ts)
+        with patch("sys.stdout", new=io.StringIO()):
+            result = menu._ChartMenu__count_by_priority()
+        self.assertEqual(result, (2, 3, 1))
+
+    def test_all_priorities_counted(self):
+        """三档优先级都能被统计到。"""
+        ts = make_ts(0)
+        for priority in (Priority.High, Priority.Medium, Priority.Low):
+            t = Task("任务")
+            t.priority = priority
+            ts.add(t)
+        menu = self._chart_mod.ChartMenu(ts)
+        with patch("sys.stdout", new=io.StringIO()):
+            result = menu._ChartMenu__count_by_priority()
+        self.assertEqual(result, (1, 1, 1))
 
 
 if __name__ == "__main__":

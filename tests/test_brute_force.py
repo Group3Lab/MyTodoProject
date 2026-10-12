@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tests import helpers as H
 from tests.helpers import (
-    MENU_ADD, MENU_DELETE, MENU_EXIT, MENU_EXPORT, MENU_MARK_DONE,
+    MENU_ADD, MENU_CHART, MENU_DELETE, MENU_EXIT, MENU_EXPORT, MENU_MARK_DONE,
     MENU_SEARCH, MENU_SET_DUE, MENU_SET_PRIORITY, MENU_VIEW_ALL,
     DataSandbox, assert_no_traceback, run_main, write_data, write_data_bytes,
 )
@@ -273,8 +273,73 @@ class TestExportReportE2E(BruteBase):
         shutil.rmtree(H.REPO_ROOT / "reports", ignore_errors=True)
 
 
+class TestChartE2E(BruteBase):
+    """OpenCV 统计图表菜单的端到端测试（主菜单 9）。
+
+    图表固定写到仓库根的 reports/chart.png，测试后清理。
+    """
+
+    CHART = H.REPO_ROOT / "reports" / "chart.png"
+
+    def tearDown(self):
+        self.CHART.unlink(missing_ok=True)
+        super().tearDown()
+
+    def test_generate_chart_from_real_data(self):
+        """有任务时生成 reports/chart.png，且是合法 PNG。"""
+        write_data(json.dumps([
+            {"title": "高1", "priority": "高", "due_date": None, "is_completed": False},
+            {"title": "高2", "priority": "高", "due_date": None, "is_completed": False},
+            {"title": "中1", "priority": "中", "due_date": None, "is_completed": False},
+            {"title": "低1", "priority": "低", "due_date": None, "is_completed": False},
+            {"title": "已完成", "priority": "高", "due_date": None, "is_completed": True},
+        ], ensure_ascii=False))
+        proc = self.run_ok([MENU_CHART, "", MENU_EXIT])
+        self.assertIn("统计图已保存", proc.stdout)
+        self.assertTrue(self.CHART.exists(), "应生成 reports/chart.png")
+        self.assertEqual(self.CHART.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+
+    def test_generate_chart_empty_list(self):
+        """空清单也能出图且不崩。"""
+        write_data("[]")
+        proc = self.run_ok([MENU_CHART, "", MENU_EXIT])
+        self.assertIn("统计图已保存", proc.stdout)
+        self.assertTrue(self.CHART.exists())
+
+    def test_chart_numbers_match_list(self):
+        """不同数据应生成不同图，说明数字是动态取的、不是写死的。"""
+        data_a = json.dumps([{"title": "a", "priority": "高", "due_date": None, "is_completed": False}], ensure_ascii=False)
+        write_data(data_a)
+        self.run_ok([MENU_CHART, "", MENU_EXIT])
+        bytes_a = self.CHART.read_bytes()
+        self.CHART.unlink()
+
+        # 换成 3 条高优先级，图应不同（证明数字是动态的，不是写死的）
+        data_b = json.dumps([{"title": f"a{i}", "priority": "高", "due_date": None, "is_completed": False} for i in range(3)], ensure_ascii=False)
+        write_data(data_b)
+        self.run_ok([MENU_CHART, "", MENU_EXIT])
+        bytes_b = self.CHART.read_bytes()
+        self.assertNotEqual(bytes_a, bytes_b, "不同数据应生成不同图，说明数字不是写死的")
+
+    def test_chart_does_not_pollute_git(self):
+        """生成的 reports/chart.png 应被 .gitignore 忽略（reports/ 整体忽略）。"""
+        import subprocess
+        write_data("[]")
+        self.run_ok([MENU_CHART, "", MENU_EXIT])
+        self.assertTrue(self.CHART.exists())
+        r = subprocess.run(
+            ["git", "check-ignore", "-q", "reports/chart.png"],
+            cwd=str(H.REPO_ROOT),
+        )
+        self.assertEqual(r.returncode, 0, "reports/chart.png 应被 git 忽略")
+
+
 class TestInteractiveMixedSession(BruteBase):
     """混合操作的长会话，模拟真实使用。"""
+
+    def tearDown(self):
+        (H.REPO_ROOT / "reports" / "chart.png").unlink(missing_ok=True)
+        super().tearDown()
 
     def test_full_session(self):
         inputs = [
@@ -288,6 +353,7 @@ class TestInteractiveMixedSession(BruteBase):
             MENU_SET_DUE, "3", "2026-11-11", "",
             MENU_DELETE, "1", "n", "",
             MENU_VIEW_ALL, "",
+            MENU_CHART, "",
             MENU_EXIT,
         ]
         proc = self.run_ok(inputs, timeout=60)

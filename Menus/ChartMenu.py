@@ -1,22 +1,27 @@
 """
 任务统计图表菜单
-用 OpenCV 生成任务优先级统计图，保存为 chart.png
+用 OpenCV 生成任务优先级统计图，保存为 reports/chart.png
 """
 
 import cv2
 import numpy as np
 from datetime import date
+from pathlib import Path
 
 from core.menuModule.menu import Menu
 from core.taskModule.task import Priority
 from core.taskModule.taskSystem import TaskSystem
+
+# 与 ExportReportMenu 保持一致：导出物统一放在项目根目录的 reports/ 下
+_CHART_DIR = Path(__file__).resolve().parent.parent / "reports"
+_CHART_FILE = _CHART_DIR / "chart.png"
 
 
 class ChartMenu(Menu):
     def __init__(self, task_system: TaskSystem):
         super().__init__(
             "任务统计图表",
-            "生成高/中/低优先级任务数量统计图，保存为 chart.png"
+            "生成高/中/低优先级任务数量统计图，保存为 reports/chart.png"
         )
         self.__task_system = task_system
 
@@ -105,7 +110,11 @@ class ChartMenu(Menu):
 
             x += 160   # 移到下一根条形的位置
 
-        # 保存到项目根目录下的 chart.png
-        path = "chart.png"
-        cv2.imwrite(path, img)
-        return path
+        # 保存到项目根目录下 reports/ 里的 chart.png（目录不存在时自动创建）
+        # 用 imencode + 自己写文件，避免 cv2.imwrite 在含中文等非 ASCII 路径下静默失败
+        _CHART_DIR.mkdir(parents=True, exist_ok=True)
+        ok, buffer = cv2.imencode(".png", img)
+        if not ok:
+            raise RuntimeError("图像编码失败")
+        _CHART_FILE.write_bytes(buffer.tobytes())
+        return str(_CHART_FILE)

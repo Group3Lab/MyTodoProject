@@ -35,6 +35,7 @@ MENU_MARK_DONE = 5       # 标记任务完成
 MENU_SET_DUE = 6         # 设置截止日期
 MENU_SET_PRIORITY = 7    # 设置任务优先级
 MENU_EXPORT = 8          # 任务清单导出
+MENU_CHART = 9           # 任务统计图表（OpenCV）
 MENU_EXIT = 0            # 退出
 
 
