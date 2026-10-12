@@ -6,12 +6,13 @@
 from core.menuModule.menu import Menu
 from core.taskModule.task import Task
 from core.taskModule.taskSystem import TaskSystem
+from core.paths import get_base_dir
 
 import html#生成HTML文件，实现导出后双击即可使用
 from datetime import date,datetime#获取时间
 from pathlib import Path#实现导出文件存放位置
 
-DEFAULT_DIR=Path(__file__).resolve().parent.parent/"reports"#将文件存放位置默认在项目根目录下的reports/文件夹之中
+DEFAULT_DIR=get_base_dir()/"reports"#将文件存放位置默认在可写根目录下的reports/文件夹之中
 
 class ExportReportMenu(Menu):
     def __init__(self,task_system: TaskSystem)->None:

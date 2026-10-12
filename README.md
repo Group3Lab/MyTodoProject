@@ -56,12 +56,37 @@ python run_tests.py
 
 > 不装 `opencv-python` / `numpy` 也能跑全部必做功能，只有主菜单「9.任务统计图表」需要它们。
 
+## 打包成 exe
+
+用 [PyInstaller](https://pyinstaller.org/) 打包，配置写在 [MyTodo.spec](./MyTodo.spec)（**onedir 模式**，生成文件夹）。已装好依赖后，在仓库根目录运行：
+
+```bash
+pip install -r requirements.txt        # 需要 opencv-python / numpy
+pip install pyinstaller                # 打包工具（未装时）
+pyinstaller --noconfirm --clean MyTodo.spec
+```
+
+产物在 `dist/MyTodo/`：
+
+```
+dist/MyTodo/
+├─ MyTodo.exe          # 双击运行
+├─ _internal/          # 依赖库（不要动）
+├─ data/tasks.json     # 任务数据（运行时生成，自动保存）
+└─ reports/            # 导出的报告与统计图（运行时生成）
+```
+
+> 分发时把 `dist/MyTodo/` **整个文件夹**拷走即可，不能只拷 `MyTodo.exe`。
+> `data/` 和 `reports/` 会在首次运行时自动创建，位置固定在 exe 同级目录
+> （打包后由 [core/paths.py](./core/paths.py) 定位；开发时则指向仓库根目录）。
+
 ## 目录导览
 
 | 路径 | 作用 | 你什么时候会看它 |
 | --- | --- | --- |
 | [src/main.py](./src/main.py) | 程序入口，主菜单循环 | 想了解程序怎么启动、主循环怎么控错 |
 | [core/](./core) | 核心底座（菜单系统 + 任务系统） | 改数据结构、菜单框架时 |
+| [core/paths.py](./core/paths.py) | 可写根目录定位（开发=仓库根，打包=exe 同级） | 改数据/报告的存放位置时 |
 | [core/taskModule/task.py](./core/taskModule/task.py) | `Task` 数据模型与校验 | 给任务加字段、改校验规则 |
 | [core/taskModule/taskSystem.py](./core/taskModule/taskSystem.py) | `TaskSystem` 增删改查接口 | 加/改任务操作方法 |
 | [core/taskModule/taskSL.py](./core/taskModule/taskSL.py) | 数据存取（`data/tasks.json`） | 改存盘格式、读写逻辑 |

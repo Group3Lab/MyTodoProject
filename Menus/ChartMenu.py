@@ -11,9 +11,10 @@ from pathlib import Path
 from core.menuModule.menu import Menu
 from core.taskModule.task import Priority
 from core.taskModule.taskSystem import TaskSystem
+from core.paths import get_base_dir
 
-# 与 ExportReportMenu 保持一致：导出物统一放在项目根目录的 reports/ 下
-_CHART_DIR = Path(__file__).resolve().parent.parent / "reports"
+# 与 ExportReportMenu 保持一致：导出物统一放在可写根目录的 reports/ 下
+_CHART_DIR = get_base_dir() / "reports"
 _CHART_FILE = _CHART_DIR / "chart.png"
 
 

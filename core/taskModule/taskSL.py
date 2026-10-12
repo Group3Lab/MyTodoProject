@@ -2,9 +2,10 @@ import json#实现保存和读取
 from pathlib import Path#实现存放文件
 from datetime import datetime#获取时间
 from core.taskModule.task import Task,Priority
+from core.paths import get_base_dir
 
-"""实现文件存在/data之中"""
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+"""实现文件存在可写根目录的 /data 之中"""
+_DATA_DIR = get_base_dir() / "data"
 _DATA_FILE = _DATA_DIR / "tasks.json"
 
 def _task_to_dict(task: Task) -> dict:#实现将Task转化为json
