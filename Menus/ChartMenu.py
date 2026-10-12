@@ -8,6 +8,7 @@ import numpy as np
 from datetime import date
 
 from core.menuModule.menu import Menu
+from core.taskModule.task import Priority
 from core.taskModule.taskSystem import TaskSystem
 
 
@@ -31,7 +32,7 @@ class ChartMenu(Menu):
             return -1
 
     def __count_by_priority(self):
-        """统计高/中/低优先级各有多少条任务"""
+        """统计高/中/低优先级的任务数量（忽略已完成任务）"""
         high = 0
         mid = 0
         low = 0
@@ -39,12 +40,20 @@ class ChartMenu(Menu):
         count = self.__task_system.get_task_count()
         for i in range(count):
             task = self.__task_system.get_by_index(i)
-            name = task.priority.name      # High / Medium / Low
-            if name == "High":
+            if task is None:
+                continue
+
+            # 忽略已完成的任务
+            if task.is_completed:
+                continue
+
+            # 用枚举成员比较，避免新增优先级时被默认归到某一档
+            priority = task.priority
+            if priority is Priority.High:
                 high += 1
-            elif name == "Medium":
+            elif priority is Priority.Medium:
                 mid += 1
-            else:
+            elif priority is Priority.Low:
                 low += 1
 
         return high, mid, low
