@@ -129,8 +129,11 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### Q6：`.venv` 要提交到 Git 吗？
 **不要。** [.gitignore](../.gitignore) 已忽略 `.venv/`、`venv/`。每个人本地各建一份；依赖靠 `requirements.txt` 共享，不要提交虚拟环境文件夹。
 
-### Q7：`data/`、`chart.png`、`reports/` 是啥？要提交吗？
-都是**程序运行产生的输出**（任务数据、统计图、导出报告），已被 `.gitignore` 忽略，不需要也不应该提交。详见 [测试指南](./测试指南.md) 的「数据隔离与自动清理」。
+### Q7：`data/`、`reports/` 是啥？要提交吗？
+都是**程序运行产生的输出**，已被 `.gitignore` 忽略，不需要也不应该提交：
+- `data/`：任务数据（`tasks.json`）；
+- `reports/`：导出报告（`report_*.html`）与统计图（`chart.png`）。
+详见 [测试指南](./测试指南.md) 的「数据隔离与自动清理」。
 
 ---
 
