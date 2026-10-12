@@ -1,10 +1,12 @@
 """白盒单测：菜单系统与各菜单 execute 的返回码/边界行为。
 
-覆盖：MenuSystem 注册与分发、各菜单空清单处理、非法输入的返回值，
+覆盖：MenuSystem 注册与分发、各菜单空清单处理、非法输入的返回值、
+搜索相关度排序、OpenCV 统计图表（ChartMenu），
 以及回归验证 MarkDoneMenu / SetPriorityMenu / MyDeleteTaskMenu 的已知缺陷已修复。
 """
 
 import io
+import os
 import sys
 import unittest
 from datetime import datetime
@@ -262,6 +264,98 @@ class TestExportReport(unittest.TestCase):
             self.assertIn("任务清单报告", html)
             self.assertIn("overdue", html)      # 逾期样式
             self.assertIn("过期任务", html)
+
+
+class TestChartMenu(unittest.TestCase):
+    """OpenCV 统计图表菜单（Menus/ChartMenu.py）。
+
+    在临时目录里当 CWD 运行，避免污染项目根目录的 chart.png。
+    """
+
+    @staticmethod
+    def _make_priority_ts():
+        ts = make_ts(0)
+        for priority, n in ((Priority.High, 2), (Priority.Medium, 3), (Priority.Low, 1)):
+            for _ in range(n):
+                t = Task("任务")
+                t.priority = priority
+                ts.add(t)
+        return ts
+
+    def _run_in_tmp(self, ts):
+        from tempfile import TemporaryDirectory
+        from Menus.ChartMenu import ChartMenu
+        with TemporaryDirectory() as tmp:
+            old = os.getcwd()
+            os.chdir(tmp)
+            try:
+                with patch("sys.stdout", new=io.StringIO()):
+                    ret = ChartMenu(ts).execute()
+                chart = Path(tmp) / "chart.png"
+                exists = chart.exists()
+                size = chart.stat().st_size if exists else 0
+            finally:
+                os.chdir(old)
+        return ret, exists, size
+
+    def test_generates_chart_png(self):
+        ret, exists, size = self._run_in_tmp(self._make_priority_ts())
+        self.assertEqual(ret, 0)
+        self.assertTrue(exists, "应生成 chart.png")
+        self.assertGreater(size, 0, "chart.png 不应为空")
+
+    def test_valid_png_header(self):
+        """生成的文件应是合法 PNG（头 8 字节固定）。"""
+        from tempfile import TemporaryDirectory
+        from Menus.ChartMenu import ChartMenu
+        with TemporaryDirectory() as tmp:
+            old = os.getcwd()
+            os.chdir(tmp)
+            try:
+                with patch("sys.stdout", new=io.StringIO()):
+                    ChartMenu(self._make_priority_ts()).execute()
+                head = (Path(tmp) / "chart.png").read_bytes()[:8]
+            finally:
+                os.chdir(old)
+        self.assertEqual(head, b"\x89PNG\r\n\x1a\n")
+
+    def test_empty_list_does_not_crash(self):
+        """空清单也应返回 0 并出图（内部用 max(...,1) 防除零）。"""
+        ret, exists, size = self._run_in_tmp(make_ts(0))
+        self.assertEqual(ret, 0)
+        self.assertTrue(exists)
+        self.assertGreater(size, 0)
+
+    def test_counts_ignore_completed(self):
+        """统计应忽略已完成任务：高2/中3/低1，另有已完成的高/中不计数。"""
+        ts = self._make_priority_ts()
+        done_high = Task("已完成高")
+        done_high.priority = Priority.High
+        done_high.is_completed = True
+        ts.add(done_high)
+        done_mid = Task("已完成中")
+        done_mid.priority = Priority.Medium
+        done_mid.is_completed = True
+        ts.add(done_mid)
+
+        from Menus.ChartMenu import ChartMenu
+        menu = ChartMenu(ts)
+        with patch("sys.stdout", new=io.StringIO()):
+            result = menu._ChartMenu__count_by_priority()
+        self.assertEqual(result, (2, 3, 1))
+
+    def test_all_priorities_counted(self):
+        """三档优先级都能被统计到。"""
+        ts = make_ts(0)
+        for priority in (Priority.High, Priority.Medium, Priority.Low):
+            t = Task("任务")
+            t.priority = priority
+            ts.add(t)
+        from Menus.ChartMenu import ChartMenu
+        menu = ChartMenu(ts)
+        with patch("sys.stdout", new=io.StringIO()):
+            result = menu._ChartMenu__count_by_priority()
+        self.assertEqual(result, (1, 1, 1))
 
 
 if __name__ == "__main__":
