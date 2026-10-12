@@ -36,17 +36,24 @@
 
 课程大作业：一个**控制台待办任务管理程序**。把「一条任务」抽象成 `Task` 类，
 用短小函数实现**增删改查、筛选统计、报告导出**，并用 Git 做版本管理。
-纯 Python 标准库实现，运行 `python src/main.py` 即可用。
+必做功能纯 Python 标准库实现；统计图表额外用到 `opencv-python` / `numpy`。
 
 ## 快速开始
 
 ```bash
+# 0. 搭好 Python 环境（首次 clone 必做，详见：Python环境使用说明）
+python -m venv .venv
+.venv\Scripts\activate        # Windows；macOS/Linux 用 source .venv/bin/activate
+pip install -r requirements.txt
+
 # 1. 直接运行程序（菜单式交互）
 python src/main.py
 
-# 2. 改完代码后自测（一条命令，无需安装任何依赖）
+# 2. 改完代码后自测（一条命令，测试本身无需额外依赖）
 python run_tests.py
 ```
+
+> 不装 `opencv-python` / `numpy` 也能跑全部必做功能，只有主菜单「9.任务统计图表」需要它们。
 
 ## 目录导览
 
@@ -61,6 +68,7 @@ python run_tests.py
 | [Menus/](./Menus) | 各功能菜单实现（**加功能主要在这**） | 新增/修改一个菜单功能 |
 | [tests/](./tests) | 自动化测试（白盒单测 + 黑盒暴力测试） | 改完代码验证没改坏 |
 | [run_tests.py](./run_tests.py) | 全自动测试入口 | 一键跑全部测试 |
+| [requirements.txt](./requirements.txt) | 第三方依赖清单 | 搭环境时装依赖 |
 | [docs/](./docs) | 项目文档 | 见下方「文档导航」 |
 | [learn/](./learn) | 学习/练手用的零散脚本 | 参考写法，非正式功能 |
 
@@ -69,14 +77,16 @@ python run_tests.py
 | 文档 | 内容 |
 | --- | --- |
 | [docs/git相关.md](./docs/git相关.md) | Git 命令与 PR 协作全流程（**新人必读**） |
+| [docs/Python环境使用说明.md](./docs/Python环境使用说明.md) | 怎么搭 Python 环境、装依赖（**新人必读**） |
 | [docs/作业需求.md](./docs/作业需求.md) | 完整作业要求与数据格式 |
 | [docs/添加新功能指南.md](./docs/添加新功能指南.md) | 怎么加一个新菜单（三步流程 + 模板） |
 | [docs/task与taskSystem修改注意事项.md](./docs/task与taskSystem修改注意事项.md) | 改核心数据模块的约定与自检清单 |
 | [docs/测试指南.md](./docs/测试指南.md) | 测试集结构与用法、怎么加用例 |
 | [docs/Ai使用说明/](./docs/Ai使用说明) | 各成员的 AI 使用记录（作业要求） |
 
-> **新人上手顺序**：先读本页 → [git相关](./docs/git相关.md) 学会提交流程 →
-> [添加新功能指南](./docs/添加新功能指南.md) 认领一个工单动手 → 改完跑 `python run_tests.py`。
+> **新人上手顺序**：[Python环境使用说明](./docs/Python环境使用说明.md) 搭好环境 → 读本页 →
+> [git相关](./docs/git相关.md) 学会提交流程 → [添加新功能指南](./docs/添加新功能指南.md) 认领一个工单动手 →
+> 改完跑 `python run_tests.py`。
 
 # 仓库
 ## 仓库路径
