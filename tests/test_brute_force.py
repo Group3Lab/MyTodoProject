@@ -276,17 +276,17 @@ class TestExportReportE2E(BruteBase):
 class TestChartE2E(BruteBase):
     """OpenCV 统计图表菜单的端到端测试（主菜单 9）。
 
-    图表固定写到仓库根的 data/chart.png，测试后清理。
+    图表固定写到仓库根的 reports/chart.png，测试后清理。
     """
 
-    CHART = H.DATA_FILE.parent / "chart.png"
+    CHART = H.REPO_ROOT / "reports" / "chart.png"
 
     def tearDown(self):
         self.CHART.unlink(missing_ok=True)
         super().tearDown()
 
     def test_generate_chart_from_real_data(self):
-        """有任务时生成 data/chart.png，且是合法 PNG。"""
+        """有任务时生成 reports/chart.png，且是合法 PNG。"""
         write_data(json.dumps([
             {"title": "高1", "priority": "高", "due_date": None, "is_completed": False},
             {"title": "高2", "priority": "高", "due_date": None, "is_completed": False},
@@ -296,7 +296,7 @@ class TestChartE2E(BruteBase):
         ], ensure_ascii=False))
         proc = self.run_ok([MENU_CHART, "", MENU_EXIT])
         self.assertIn("统计图已保存", proc.stdout)
-        self.assertTrue(self.CHART.exists(), "应生成 data/chart.png")
+        self.assertTrue(self.CHART.exists(), "应生成 reports/chart.png")
         self.assertEqual(self.CHART.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
 
     def test_generate_chart_empty_list(self):
@@ -322,23 +322,23 @@ class TestChartE2E(BruteBase):
         self.assertNotEqual(bytes_a, bytes_b, "不同数据应生成不同图，说明数字不是写死的")
 
     def test_chart_does_not_pollute_git(self):
-        """生成的 data/chart.png 应被 .gitignore 忽略（data/ 整体忽略）。"""
+        """生成的 reports/chart.png 应被 .gitignore 忽略（reports/ 整体忽略）。"""
         import subprocess
         write_data("[]")
         self.run_ok([MENU_CHART, "", MENU_EXIT])
         self.assertTrue(self.CHART.exists())
         r = subprocess.run(
-            ["git", "check-ignore", "-q", "data/chart.png"],
+            ["git", "check-ignore", "-q", "reports/chart.png"],
             cwd=str(H.REPO_ROOT),
         )
-        self.assertEqual(r.returncode, 0, "data/chart.png 应被 git 忽略")
+        self.assertEqual(r.returncode, 0, "reports/chart.png 应被 git 忽略")
 
 
 class TestInteractiveMixedSession(BruteBase):
     """混合操作的长会话，模拟真实使用。"""
 
     def tearDown(self):
-        (H.DATA_FILE.parent / "chart.png").unlink(missing_ok=True)
+        (H.REPO_ROOT / "reports" / "chart.png").unlink(missing_ok=True)
         super().tearDown()
 
     def test_full_session(self):

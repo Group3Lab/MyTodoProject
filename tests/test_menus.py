@@ -269,13 +269,13 @@ class TestExportReport(unittest.TestCase):
 class TestChartMenu(unittest.TestCase):
     """OpenCV 统计图表菜单（Menus/ChartMenu.py）。
 
-    图表固定输出到仓库根的 data/chart.png；测试通过 monkeypatch 把输出目录
-    指到临时目录，避免污染真实的 data/。
+    图表固定输出到仓库根的 reports/chart.png；测试通过 monkeypatch 把输出目录
+    指到临时目录，避免污染真实的 reports/。
     """
 
     def setUp(self):
         self._tmp = TemporaryDirectory()
-        self._dir = Path(self._tmp.name) / "data"
+        self._dir = Path(self._tmp.name) / "reports"
         from Menus import ChartMenu as chart_mod
         self._chart_mod = chart_mod
         self._old_dir = chart_mod._CHART_DIR
@@ -325,7 +325,7 @@ class TestChartMenu(unittest.TestCase):
         self.assertTrue(exists)
         self.assertGreater(size, 0)
 
-    def test_creates_data_dir_if_missing(self):
+    def test_creates_output_dir_if_missing(self):
         """输出目录不存在时应自动创建。"""
         self.assertFalse(self._dir.exists())
         ret, exists, _ = self._run(self._make_priority_ts())
